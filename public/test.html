@@ -34,7 +34,7 @@
 		if(gameID!=null){
 			socket.emit('joinRoom', gameID); //join game room
 			//socket.emit('joinGame', gameID);
-			share = document.domain+":"+port+"/?gameID=" + ID;
+			share = document.domain+":"+port+"/?gameID=" + gameID;
 		}
 		else{
 			socket.emit('newRoom'); //makes game ID and joins game room
@@ -42,10 +42,11 @@
 	});
 	//gets the ID for the new game returned by the server after calling newGame, makes a share link
 	socket.on('updateGameID', function (ID) {
+        gameID = ID;
 		if(gameID==null){
-			history.pushState({},document.title,"?gameID=" + ID); //add gameID tag to current url
+			history.pushState({},document.title,"?gameID=" + gameID); //add gameID tag to current url
 		}
-        share = document.domain+":"+port+"/?gameID=" + ID;
+        share = document.domain+":"+port+"/?gameID=" + gameID;
 	});
 	socket.on('updateAuth', function(id, newCode) {
         playerID = id;
