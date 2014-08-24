@@ -42,11 +42,11 @@
 	});
 	//gets the ID for the new game returned by the server after calling newGame, makes a share link
 	socket.on('updateGameID', function (ID) {
-        gameID = ID;
 		if(gameID==null){
 			history.pushState({},document.title,"?gameID=" + gameID); //add gameID tag to current url
 		}
         share = document.domain+":"+port+"/?gameID=" + gameID;
+        gameID=ID;
 	});
 	socket.on('updateAuth', function(id, newCode) {
         playerID = id;
