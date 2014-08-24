@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.0.6.js"></script>
+<script src="js/lib/Cookies-master/cookies.min.js"></script>
+<script type="text/javascript" src="/js/clipboard/jquery.clipboard.js"></script>
+
+<script>
+    var playerID = "";
+    var playerCode = "";
+    var setup=false;
+    var chatters = {};
+    var share = "";
+	//parse URL tags
+	function getUrlVars() {
+		var vars = {};
+		var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+			vars[key] = value;
+		});
+		return vars;
+	}
+	
+	var socket = io();
+	var gameID = getUrlVars()["gameID"];
+	socket.on('connect', function(){
+        playerID = Cookies.get('playerID');
+        playerCode = Cookies.get('playerCode');
+        //playerCode = "temp";
+        socket.emit('authenticate', playerID, playerCode);
+		//check if joining a game or making a new game
+		if(gameID!=null){
+			socket.emit('joinRoom', gameID); //join game room
+			//socket.emit('joinGame', gameID);
+			share= "http://localhost:3000/?gameID=" + gameID;
+		}
+		else{
+			socket.emit('newRoom'); //makes game ID and joins game room
+		}
+	});
+	//gets the ID for the new game returned by the server after calling newGame, makes a share link
+	socket.on('updateGameID', function (ID) {
+		if(gameID==null){
+			history.pushState({},document.title,"?gameID=" + ID); //add gameID tag to current url
+		}
+        share = "http://localhost:3000/?gameID=" + ID;
+	});
+	socket.on('updateAuth', function(id, newCode) {
+        playerID = id;
+        playerCode = newCode;
+        Cookies.set('playerID', playerID);
+        Cookies.set('playerCode', playerCode);
+        $("#userName").text(playerID);
+    });
+
+	$( document ).ready(function() {
+        $("#chatLine").focus();
+        $("#ans").attr('checked', false);
+
+        var copy_sel = $('#inviteLink');
+        // Disables other default handlers on click (avoid issues)
+        copy_sel.on('click', function(e) {
+            e.preventDefault();
+        });
+        // Apply clipboard click event
+        copy_sel.clipboard({
+            path: '/js/clipboard/jquery.clipboard.swf',
+            copy: function() {
+                return share;
+            }
+        });
+	});
+    
+    function addChat(user, message) {
+        document.getElementById("chatBox").value +=
+            user + ": " + message + "\n";
+        $('#chatBox').scrollTop($('#chatBox')[0].scrollHeight);
+
+        if(chatters[user]===undefined){
+            chatters[user]=[Math.floor((Math.random() * 11) ),Math.floor((Math.random() * 3) )];
+        }
+
+        var msg = new SpeechSynthesisUtterance();
+        var voices = window.speechSynthesis.getVoices();
+        msg.voice = voices[chatters[user][0]]; // Note: some voices don't support altering params
+        msg.voiceURI = 'native';
+        msg.volume = 1; // 0 to 1
+        //msg.rate = 1; // 0.1 to 10
+        msg.pitch = chatters[user][1]; //0 to 2
+        msg.lang = 'en-US';
+
+        var checked=$("#speak:checked").length;
+        if( checked == 1&&setup==true){
+            msg.text = message;
+            window.speechSynthesis.speak(msg);  
+        }
+    }
+    function resetChat() {
+        document.getElementById("chatBox").value = "";
+        setup = false;
+    }
+    
+    socket.on('resetChat', function(messages) {
+        resetChat();
+        messages.forEach(function(message) {
+            addChat(message['playerID'], message['message']);
+        });
+        setup=true;
+    });
+    
+    socket.on('getChat', function(user, message) {
+        addChat(user, message);
+    });
+    
+    function sendChat() {
+        var message = document.getElementById("chatLine").value;
+        socket.emit("getChat", message);
+        document.getElementById("chatLine").value = "";
+    }
+</script>
+
+</head>
+<body>
+<div id="test"> 
+    <h1>Chat Speak</h1>
+</div>
+
+User: <span id="userName"></span><br />
+<a href="#" id="inviteLink">copy invite link</a>
+<div name="chat">
+    <form action="" onsubmit="sendChat();return false;">
+        <table>
+        <tr><td>
+            <textarea name="chatBox" id="chatBox" rows="20" cols="50"  readonly></textarea>
+        </td></tr>
+        <tr><td>
+            <input type="text" name="chatLine" id="chatLine" autocomplete="off" />
+            <input type="submit" value="Submit"> <input type="checkbox" name="speak" value="speak" id="speak">Speak
+            </td></tr>
+        </table>
+    </form>
+</div>
+</body>
+</html>
