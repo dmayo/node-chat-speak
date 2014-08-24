@@ -8,6 +8,7 @@
 <script type="text/javascript" src="/js/clipboard/jquery.clipboard.js"></script>
 
 <script>
+    var port = 3000
     var playerID = "";
     var playerCode = "";
     var setup=false;
@@ -33,7 +34,7 @@
 		if(gameID!=null){
 			socket.emit('joinRoom', gameID); //join game room
 			//socket.emit('joinGame', gameID);
-			share= document.title+"?gameID=" + gameID;
+			share = document.domain+":"+port+"/?gameID=" + ID;
 		}
 		else{
 			socket.emit('newRoom'); //makes game ID and joins game room
@@ -44,7 +45,7 @@
 		if(gameID==null){
 			history.pushState({},document.title,"?gameID=" + ID); //add gameID tag to current url
 		}
-        share = document.title+"?gameID=" + ID;
+        share = document.domain+":"+port+"/?gameID=" + ID;
 	});
 	socket.on('updateAuth', function(id, newCode) {
         playerID = id;
