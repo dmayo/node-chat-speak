@@ -96,7 +96,7 @@
         var checked=$("#speak:checked").length;
         if( checked == 1&&setup==true){
             msg.text = message;
-            if(user==playerID&&myVoice==true){
+            if(!(user==playerID&&myVoice==false)){
                 window.speechSynthesis.speak(msg); 
             }
         }
