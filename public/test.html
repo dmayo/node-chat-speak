@@ -9,6 +9,7 @@
 
 <script>
     var port = 3000
+    var myVoice = false; //speak what you just typed
     var playerID = "";
     var playerCode = "";
     var setup=false;
@@ -95,7 +96,9 @@
         var checked=$("#speak:checked").length;
         if( checked == 1&&setup==true){
             msg.text = message;
-            window.speechSynthesis.speak(msg);  
+            if(user==playerID&&myVoice==true){
+                window.speechSynthesis.speak(msg); 
+            }
         }
     }
     function resetChat() {
