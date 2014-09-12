@@ -79,9 +79,24 @@
         document.getElementById("chatBox").value +=
             user + ": " + message + "\n";
         $('#chatBox').scrollTop($('#chatBox')[0].scrollHeight);
-
+        var numVoicesUsed = 0; //there are only 33 possible voices
+        //pick a different voice for each user
         if(chatters[user]===undefined){
-            chatters[user]=[Math.floor((Math.random() * 11) ),Math.floor((Math.random() * 3) )];
+            var repick = false;
+            while(repick=true){
+                repick=false;
+                chatters[user]=[Math.floor((Math.random() * 11) ),Math.floor((Math.random() * 3) )];
+                for(var key in chatters){
+                    if(chatters[key][0]==chatters[user][0]&&chatters[key][1]==chatters[user][1]){
+                        repick=true;
+                    }
+                }
+                //reuse voices after all voice possibilities have be exausted
+                if(numVoicesUsed>=33){
+                    repick=false;
+                }
+            }
+            numVoicesUsed++;
         }
 
         var msg = new SpeechSynthesisUtterance();
