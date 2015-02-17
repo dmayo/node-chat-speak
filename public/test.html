@@ -78,27 +78,27 @@
     function addChat(user, message) {
         document.getElementById("chatBox").value +=
             user + ": " + message + "\n";
+			
         $('#chatBox').scrollTop($('#chatBox')[0].scrollHeight);
         var numVoicesUsed = 0; //there are only 33 possible voices
         //pick a different voice for each user
+		
         if(chatters[user]===undefined){
-            var repick = false;
-            while(repick=true){
-                repick=false;
+			
+            
+			var repick = true;
+            while(repick && numVoicesUsed<=33){
                 chatters[user]=[Math.floor((Math.random() * 11) ),Math.floor((Math.random() * 3) )];
+				repick=false;
                 for(var key in chatters){
-                    if(chatters[key][0]==chatters[user][0]&&chatters[key][1]==chatters[user][1]){
+                    if(key!=user&&chatters[key][0]==chatters[user][0]&&chatters[key][1]==chatters[user][1]){
                         repick=true;
                     }
                 }
-                //reuse voices after all voice possibilities have be exausted
-                if(numVoicesUsed>=33){
-                    repick=false;
-                }
+				numVoicesUsed++;
             }
-            numVoicesUsed++;
+			
         }
-
         var msg = new SpeechSynthesisUtterance();
         var voices = window.speechSynthesis.getVoices();
         msg.voice = voices[chatters[user][0]]; // Note: some voices don't support altering params
